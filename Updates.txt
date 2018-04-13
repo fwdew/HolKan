@@ -1,0 +1,9 @@
+ - Update code with lock objects.
+ - Update code with flashDisc identificator instead of ip/name PC identificator.
+ - Add Ukranian language option.
+ - Add GetAllOnlineUsers possibility.
+ - What should we do if server is stuck.
+ - Create / Remove file when program is running.
+ - Add discription of HolKan.
+ - Add Users to xml.
+ - Updates users and other constants with ServerConfigurationForm

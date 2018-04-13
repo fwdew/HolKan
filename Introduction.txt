@@ -1,0 +1,24 @@
+Structure of Income/Outcome message:
+	Packet
+		Datagram
+			MessageSPEC
+
+Full structure of message dataGridView table
+	LocalId
+	GlobalId
+	CreationTime
++	ShowTime
++	Message
++	ConnectorName
+	SenderName
+	SenderIp
+	RecipientName
+	RecipientIp
+	Type
++	Status
+	StatusGotServer
+	StatusGotRecipient
+	StatusRecipientConfirmed
+	StatusCancelPressed(N times)
+		List of DateTime
++	Delete button

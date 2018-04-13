@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<main>
+
+  <constantsInt>
+	<serverPort>5016</serverPort>
+	<clientPort>5017</clientPort>
+	<datagramLength>7</datagramLength>
+  </constantsInt>
+
+  <constantsString>
+	<serverIpAdress>192.168.1.220</serverIpAdress>
+	<adminIpAdress>192.168.1.220</adminIpAdress>
+
+	<request>request</request>
+	<respond>respond</respond>
+	<system>system</system>
+	<eventData>eventData</eventData>
+	<config>config</config>
+	<settings>settings</settings>
+
+	<dataTypeSepar>;;;</dataTypeSepar>
+	<dataSepar>:::</dataSepar>
+	<endOfDatagram>$.$.$.</endOfDatagram>
+	<interchangeableSymbolsDataTypeSepar>???;special!!!</interchangeableSymbolsDataTypeSepar>
+	<interchangeableSymbolsDataSepar>???:special!!!</interchangeableSymbolsDataSepar>
+	<interchangeableSymbolsEndOfDatagram>???$special!!!</interchangeableSymbolsEndOfDatagram>
+  </constantsString>
+
+  <commands>
+	<startingProgram>startingProgram</startingProgram>
+	<closingProgram>closingProgram</closingProgram>
+	<allEventsSynchronized>allEventsSynchronized</allEventsSynchronized>
+	<customCommand>customCommand</customCommand>
+	<restart>restart</restart>
+	<shutdownSoft>shutdownSoft</shutdownSoft>
+	<shutdownHard>shutdownHard</shutdownHard>
+	<runProgram>runProgram</runProgram>
+	<error>error</error>
+	<erase>erase</erase>
+
+	<onlineText> (Онлайн)</onlineText>
+	<offlineText></offlineText>
+	
+	<seconds>seconds</seconds>
+	<minutes>minutes</minutes>
+	<hours>hours</hours>
+	<days>days</days>
+	<weeks>weeks</weeks>
+	<months>months</months>
+	<years>years</years>
+
+	<immediatly>immediatly</immediatly>
+	<after>after</after>
+	<exact>exact</exact>
+  </commands>
+
+  <localSettings>
+	<delayButton5>5</delayButton5>
+	<delayButton10>10</delayButton10>
+	<delayIgnoring>3</delayIgnoring>
+	<countdownStart>3</countdownStart>
+	<autoCloseForm>10</autoCloseForm>
+	<beep>1</beep>
+  </localSettings>
+
+</main>
