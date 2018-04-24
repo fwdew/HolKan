@@ -28,6 +28,9 @@ namespace Server
 
          dataGridViewEvents.Columns["message"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
          dataGridViewEvents.Sort(dataGridViewEvents.Columns["id"], ListSortDirection.Ascending);
+
+         // Create or just use local DB.
+         HolKanDao.CreateDB();
       }
 
       // TODO

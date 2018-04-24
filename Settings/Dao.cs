@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.IO;
 
@@ -196,25 +192,6 @@ namespace Settings
 
       private static SQLiteDatabase SQLiteDatabase;
 
-      public static bool CheckDatabasePresent(bool createTables)
-      {
-         if (SQLiteDatabase == null) {
-            SQLiteDatabase = new SQLiteDatabase(DB_NAME);
-         }
-         if (!SQLiteDatabase.IsDatabasePresent()) {
-            if (createTables) {
-               SQLiteDatabase.CreateDataFile();
-               using (var session = SQLiteDatabase.OpenSession()) {
-                  CreateTables(session.Db, session.Txn);
-               }
-               return true;
-            } else {
-               return false;
-            }
-         }
-         return true;
-      }
-
       // DEBUG
       public static void TestRun()
       {
@@ -245,24 +222,72 @@ namespace Settings
          //Console.ReadKey();
       }
 
-      #region Create TODO
-      // TODO:
-      public static bool CreateDB(bool rewrite = false)
+      #region Create
+      /// <summary>
+      /// Create DB anyway.
+      /// </summary>
+      /// <param name="rewrite">If rewrite true delete old DB and recreate a new one.</param>
+      public static void CreateDB(bool rewrite = false)
       {
-         SQLiteConnection.CreateFile("MyDatabase.sqlite");
-
-         SQLiteConnection m_dbConnection;
-         m_dbConnection =
-               new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
-         m_dbConnection.Open();
-         //string sql = "CREATE TABLE highscores (name VARCHAR(20), score INT)";
-
-         return true;
+         if (CheckDatabasePresent(true)) {
+            if (rewrite) {
+               File.Delete(DB_NAME);
+               CheckDatabasePresent(true);
+            }
+         }
       }
 
-      // TODO:
-      public static bool CreateTables()
+      /// <summary>
+      /// Create Users and Messages tables.
+      /// </summary>
+      public static void CreateTables(SQLiteConnection db, SQLiteTransaction txn)
       {
+         const string CREATE_USER_TABLE = @"
+CREATE TABLE users (
+   id INT
+   , ip VARCHAR(20)
+   , name VARCHAR(20)
+)";
+
+         const string CREATE_MESSAGE_TABLE = @"
+CREATE TABLE messages (
+   localId INT
+   , id INT
+   , creationTime INT
+   , showTime INT
+   , message VARCHAR(20)
+   , systemMessage BLOB
+   , alert INT
+   , senderId INT
+   , recipientId INT
+   , status VARCHAR(20)
+)";
+
+         using (var command = new SQLiteCommand(CREATE_USER_TABLE, db, txn)) {
+            command.ExecuteNonQuery();
+         }
+
+         using (var command = new SQLiteCommand(CREATE_MESSAGE_TABLE, db, txn)) {
+            command.ExecuteNonQuery();
+         }
+      }
+
+      public static bool CheckDatabasePresent(bool createTables)
+      {
+         if (SQLiteDatabase == null) {
+            SQLiteDatabase = new SQLiteDatabase(DB_NAME);
+         }
+         if (!SQLiteDatabase.IsDatabasePresent()) {
+            if (createTables) {
+               SQLiteDatabase.CreateDataFile();
+               using (var session = SQLiteDatabase.OpenSession()) {
+                  CreateTables(session.Db, session.Txn);
+               }
+               return true;
+            } else {
+               return false;
+            }
+         }
          return true;
       }
       #endregion
@@ -336,11 +361,6 @@ namespace Settings
       public static string LoadMessages()
       {
          return "Message";
-      }
-
-      public static void CreateTables(SQLiteConnection db, SQLiteTransaction txn)
-      {
-         throw new NotImplementedException();
       }
       #endregion
    }

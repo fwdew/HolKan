@@ -635,7 +635,7 @@
          // date_time_event
          // 
          this.date_time_event.HeaderText = "DateTime";
-         this.date_time_event.Name = COLUMN_SHOW_TIME;
+         this.date_time_event.Name = "date_time_event";
          this.date_time_event.Width = 200;
          // 
          // sender_name_event
