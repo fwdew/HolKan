@@ -83,7 +83,7 @@ namespace Settings
       // TODO: needless anymore
       protected static string GetLastPartFromIp(IPAddress ip)
       {
-         return Convert.ToInt32(ip.ToString().Split(new string[] { "." }, StringSplitOptions.None)[3]).ToString(ipLastNumberFormat);
+         return ip.GetAddressBytes()[3].ToString(ipLastNumberFormat);
       }
 
       private static IPEndPoint GetRecipientIPEndPoint(IPAddress ip)
@@ -94,7 +94,7 @@ namespace Settings
 
       #region Users
       // TODO:
-      protected User GetUserFromIp(IPAddress ip)
+      protected User GetUserByIp(IPAddress ip)
       {
          return Users.FirstOrDefault(user => user.Ip == ip);
       }
@@ -216,7 +216,7 @@ namespace Settings
          Users.Where(user => user.IsOnline).ToList().ForEach(user => AddToSendingPool(new Packet(user, datagram)));
       }
 
-      // TODO:
+      // TODO: move to Client form
       protected void InformServerAboutStartUp()
       {
          AddToSendingPool(

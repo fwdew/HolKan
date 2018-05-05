@@ -30,7 +30,7 @@ namespace Server
          dataGridViewEvents.Sort(dataGridViewEvents.Columns["id"], ListSortDirection.Ascending);
 
          // Create or just use local DB.
-         HolKanDao.CreateDB();
+         HolKanDao.ConnectToDB();
       }
 
       // TODO

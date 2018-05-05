@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 
@@ -7,7 +8,6 @@ namespace Settings
    // TODO:
    public static class SQLiteHelper
    {
-      // TODO:
       public static string MakeConnectionString(string indexPath)
       {
          return $"Data Source={indexPath};Version=3;PRAGMA journal_mode=WAL;";
@@ -84,10 +84,8 @@ namespace Settings
       /// </summary>
       public SQLiteDatabase(string fileName)
       {
-         connString = SQLiteHelper.MakeConnectionString(
-            Path.Combine(
-               Path.GetTempPath(),
-               fileName));
+         filePath = fileName;
+         connString = SQLiteHelper.MakeConnectionString(filePath);
       }
 
       /// <summary>
@@ -101,6 +99,13 @@ namespace Settings
             return true;
          }
          return false;
+      }
+
+      public void DeleteDataFile()
+      {
+         if (File.Exists(filePath)) {
+            File.Delete(filePath);
+         }
       }
 
       /// <summary>
@@ -187,8 +192,9 @@ namespace Settings
 
    public static class HolKanDao
    {
-      private static readonly string dbPath = Path.GetTempPath();
+      private static readonly string db_folder_path = Path.GetTempPath();
       private const string DB_NAME = @"HolKanDB.sqlite";
+      private static readonly string DB_PATH = Path.Combine(db_folder_path, DB_NAME);
 
       private static SQLiteDatabase SQLiteDatabase;
 
@@ -222,25 +228,42 @@ namespace Settings
          //Console.ReadKey();
       }
 
-      #region Create
-      /// <summary>
-      /// Create DB anyway.
-      /// </summary>
-      /// <param name="rewrite">If rewrite true delete old DB and recreate a new one.</param>
-      public static void CreateDB(bool rewrite = false)
+      #region Create DB with tables
+      #region DB
+      public static void ConnectToDB(bool rewriteDb = false)
       {
-         if (CheckDatabasePresent(true)) {
-            if (rewrite) {
-               File.Delete(DB_NAME);
-               CheckDatabasePresent(true);
+         if (SQLiteDatabase == null) {
+            SQLiteDatabase = new SQLiteDatabase(DB_PATH);
+         }
+         if (rewriteDb) {
+            SQLiteDatabase.DeleteDataFile();
+         }
+         if (SQLiteDatabase.CreateDataFile()) {
+            using (var session = SQLiteDatabase.OpenSession()) {
+               CreateTables(session.Db, session.Txn);
             }
          }
       }
 
-      /// <summary>
-      /// Create Users and Messages tables.
-      /// </summary>
+      // TODO: maybe needless
+      public static bool CheckDatabasePresent(bool createTables)
+      {
+         if (SQLiteDatabase == null) {
+            SQLiteDatabase = new SQLiteDatabase(DB_NAME);
+         }
+
+         return SQLiteDatabase.IsDatabasePresent();
+      }
+      #endregion
+
+      #region Tables
       public static void CreateTables(SQLiteConnection db, SQLiteTransaction txn)
+      {
+         CreateUserTable(db, txn);
+         CreateMessageTable(db, txn);
+      }
+
+      private static void CreateUserTable(SQLiteConnection db, SQLiteTransaction txn)
       {
          const string CREATE_USER_TABLE = @"
 CREATE TABLE users (
@@ -249,10 +272,17 @@ CREATE TABLE users (
    , name VARCHAR(20)
 )";
 
+         using (var command = new SQLiteCommand(CREATE_USER_TABLE, db, txn)) {
+            command.ExecuteNonQuery();
+         }
+      }
+
+      private static void CreateMessageTable(SQLiteConnection db, SQLiteTransaction txn)
+      {
          const string CREATE_MESSAGE_TABLE = @"
 CREATE TABLE messages (
    localId INT
-   , id INT
+   , serverId INT
    , creationTime INT
    , showTime INT
    , message VARCHAR(20)
@@ -263,33 +293,11 @@ CREATE TABLE messages (
    , status VARCHAR(20)
 )";
 
-         using (var command = new SQLiteCommand(CREATE_USER_TABLE, db, txn)) {
-            command.ExecuteNonQuery();
-         }
-
          using (var command = new SQLiteCommand(CREATE_MESSAGE_TABLE, db, txn)) {
             command.ExecuteNonQuery();
          }
       }
-
-      public static bool CheckDatabasePresent(bool createTables)
-      {
-         if (SQLiteDatabase == null) {
-            SQLiteDatabase = new SQLiteDatabase(DB_NAME);
-         }
-         if (!SQLiteDatabase.IsDatabasePresent()) {
-            if (createTables) {
-               SQLiteDatabase.CreateDataFile();
-               using (var session = SQLiteDatabase.OpenSession()) {
-                  CreateTables(session.Db, session.Txn);
-               }
-               return true;
-            } else {
-               return false;
-            }
-         }
-         return true;
-      }
+      #endregion
       #endregion
 
       #region Users TODO maybe not need in db
@@ -327,39 +335,85 @@ CREATE TABLE messages (
       }
       #endregion
 
-      #region Messages TODO
-      public static bool SaveMessage()
+      #region Messages
+      // TODO:
+      public static void SaveMessage(long id,
+         long serverId,
+         double creationTimeSeconds,
+         double showTimeSeconds,
+         string message,
+         byte[] systemMessage,
+         bool alertOnConfirm,
+         byte senderId,
+         int RecipientId,
+         Type Type)
       {
-         return true;
+         var messageSql = $@"
+insert into messages (localId
+   , severId
+   , creationTime
+   , showTime
+   , message
+   , systemMessage
+   , alert
+   , senderId
+   , recipientId
+   , status)
+values ({id}
+   , {serverId}
+   , {creationTimeSeconds}
+   , {showTimeSeconds}
+   , {message}
+   , {systemMessage}
+   , {alertOnConfirm}
+   , senderId INT
+   , recipientId INT
+   , status VARCHAR(20)
+)";
+
+         using (var session = SQLiteDatabase.OpenSession()) {
+            using (var command = new SQLiteCommand(message, session.Db, session.Txn)) {
+               command.ExecuteNonQuery();
+            }
+         }
+         
       }
 
-      public static bool SaveMessages()
+      public static void SaveMessages(IEnumerable<Datagram> datagrams)
       {
-         return true;
+         foreach (var datagram in datagrams) {
+            SaveMessage(datagram);
+         }
       }
 
+      // TODO:
       public static bool UpdateMessage()
       {
          return true;
       }
 
+      // TODO:
       public static bool UpdateMessageStatus()
       {
          return true;
       }
 
+      // TODO:
       public static bool UpdateMessageStatusHistory()
       {
          return true;
       }
 
+      // TODO:
       public static string LoadMessage()
       {
          return "Message";
       }
 
+      // TODO:
       public static string LoadMessages()
       {
+         
          return "Message";
       }
       #endregion

@@ -117,6 +117,7 @@ namespace Settings
 
       private StatusMessage statusMessage = StatusMessage.NonActive;
 
+      #region Constructor
       public Datagram()
       {
          Id = NOT_VALID_ID;
@@ -127,8 +128,8 @@ namespace Settings
          try {
             using (var br = new BinaryReader(new MemoryStream(rawBytes))) {
                Id = br.ReadInt64();
-               CreationTime = Const.START_EPOCH_TIME.AddSeconds(br.ReadDouble());
-               ShowTime = Const.START_EPOCH_TIME.AddSeconds(br.ReadDouble());
+               CreationTime = GetTimeFromSeconds(br.ReadDouble());
+               ShowTime = GetTimeFromSeconds(br.ReadDouble());
                Message = br.ReadString();
                var systemMessageLength = br.ReadInt32();
                SystemMessage = br.ReadBytes(systemMessageLength);
@@ -172,16 +173,40 @@ namespace Settings
       {
          ShowTime = showTime;
       }
+      #endregion
 
       // TODO:
+      public void SaveToDB()
+      {
+         HolKanDao.SaveMessage(
+            Id,
+            ServerId, GetSecondsFromTime(CreationTime), GetSecondsFromTime(ShowTime), Message, SystemMessage, AlertOnConfirm, SenderId, RecipientId, Type
+            );
+      }
+
+      private double GetSecondsFromTime(DateTime dateTime)
+      {
+         return (dateTime - Const.START_EPOCH_TIME).TotalSeconds;
+      }
+
+      private DateTime GetTimeFromSeconds(double seconds)
+      {
+         return Const.START_EPOCH_TIME.AddSeconds(seconds);
+      }
+
+      private static byte GetLastPartFromIp(IPAddress ip)
+      {
+         return ip.GetAddressBytes()[3];
+      }
+
       public byte[] ToByteArray()
       {
          byte[] rawBytes = null;
 
          using (var bw = new BinaryWriter(new MemoryStream(rawBytes))) {
             bw.Write(Id);
-            bw.Write((CreationTime - Const.START_EPOCH_TIME).TotalSeconds);
-            bw.Write((ShowTime - Const.START_EPOCH_TIME).TotalSeconds);
+            bw.Write(GetSecondsFromTime(CreationTime));
+            bw.Write(GetSecondsFromTime(ShowTime));
             bw.Write(Message);
             bw.Write(SystemMessage.Length);
             bw.Write(SystemMessage);
@@ -234,13 +259,16 @@ namespace Settings
 
          var datagram = DatagramsSortedList.Values[0][0];
 
-         RemoveFromDatagramList();
+         RemoveFirstDatagramFromDatagramList();
          RemoveFromDGV(datagram.Id);
 
          return datagram;
       }
 
       #region Datagram List methods
+      /// <summary>
+      /// Add datagram to list, sorted by own showTime.
+      /// </summary>
       private void AddToDatagramList(Datagram datagram)
       {
          var key = datagram.ShowTime;
@@ -251,7 +279,10 @@ namespace Settings
          }
       }
 
-      private void RemoveFromDatagramList()
+      /// <summary>
+      /// Remove current first datagram from sorted list.
+      /// </summary>
+      private void RemoveFirstDatagramFromDatagramList()
       {
          DatagramsSortedList.Values[0].RemoveAt(0);
          if (!DatagramsSortedList.Values[0].Any()) {
